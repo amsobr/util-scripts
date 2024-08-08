@@ -1,0 +1,82 @@
+#/bin/bash
+
+show_usage(){
+    echo "Usage:" 1>&2
+    echo "    $0 [TTY] [BAUD] [CONFIG]" 1>&2
+    echo "" 1>&2
+    echo "BAUD     : 9600, 19200, 38400, 57600, *115200" 1>&2
+    echo "CONFIG   : *8N1, 8E1, 8N2" 1>&2
+    echo "TTY      : name of tty chardev (default: ttyUSB0)" 1>&2
+    echo "" 1>&2
+}
+
+if [ $# -eq 1 ] && [ "$1" = "--help" ]; then
+    show_usage
+    exit 0
+fi
+
+BAUD=115200
+CONFIG=8N1
+SERIAL=/dev/ttyUSB0
+
+FLOW="n"
+PARITY="n"
+BITS="8"
+STOP="1"
+
+while [ $# -gt 0 ]; do
+    ARG=$1
+    shift
+    case $ARG in
+        tty*)
+            SERIAL=/dev/$ARG
+            ;;
+
+        1200|2400|4800|9600|19200|38400|57600|115200|230400|460800|921600)
+            BAUD=$ARG
+            ;;
+
+        8N1|8n1|8N2|8n2|8E1|8e1|8O1|8o1)
+            ARG=$(echo $ARG | tr '[:lower:]' '[:upper:]')
+            case $ARG in
+                8N1)
+                    PARITY="n"
+                    BITS="8"
+                    STOP="1"
+                    ;;
+
+                8E1)
+                    PARITY="e"
+                    BITS="8"
+                    STOP="1"
+                    ;;
+    
+                8N2)
+                    PARITY="n"
+                    BITS="8"
+                    STOP="2"
+                    ;;
+    
+                8O1)
+                    PARITY="0"
+                    BITS="8"
+                    STOP="1"
+                    ;;
+    
+                *)
+                    echo "Unexpected error: config caught but not handled: $ARG" 1>&2
+                    show_usage
+                    exit 1
+                    ;;
+            esac
+            ;;
+
+        *)
+            echo "Unrecognized configuration token: $ARG"
+            show_usage
+            ;;
+    esac
+done
+
+picocom -b $BAUD -f n -y $PARITY -d $BITS -p $STOP $SERIAL
+

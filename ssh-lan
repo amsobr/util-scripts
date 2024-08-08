@@ -1,0 +1,46 @@
+#!/bin/bash
+
+if [[ $# -eq 1 || $# -eq 2 ]]; then
+	LEN=$(echo $1 | awk -F "." '{print NF;}')
+	case "$LEN" in
+		"1")
+			IP_ADDR=192.168.1.$1
+			;;
+		"2")
+			IP_ADDR=192.168.$1
+			;;			
+		"3")
+			IP_ADDR=192.$1
+			;;
+		"4")
+			IP_ADDR=$1
+			;;
+		*)
+			echo "Invalid IP Address!"
+			exit
+	esac
+else
+	echo "Usage:"
+	echo "    $0       D [USER] : Connects root@192.168.1.D"
+	echo "    $0     C.D [USER] : Connects root@192.168.C.D"
+	echo "    $0   B.C.D [USER] : Connects root@192.B.C.D"
+	echo "    $0 A.B.C.D [USER] : Connects root@A.B.C.D"
+	echo "Note:"
+	echo "    Default USER is root"
+fi
+
+USER=root
+if [[ $# -eq 2 ]]; then
+	USER=$2
+fi
+
+
+ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" $USER@$IP_ADDR
+
+#if sshpass > /dev/null 2>&1; then
+#	sshpass -p "barix" ssh -o "StrictHostKeyChecking=no" -o "UserKnownHostsFile=/dev/null" $USER@$IP_ADDR
+#else
+#	echo "sshpass is missing!"
+#	false
+#fi
+

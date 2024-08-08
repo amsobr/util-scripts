@@ -1,0 +1,11 @@
+#!/bin/sh
+
+SRC=$1
+DST=$2
+BMAPFILE=$1.bmap
+if [ ! -e $BMAPFILE ]; then
+    BMAPFILE=$(mktemp)
+    bmaptool create -o $BMAPFILE $SRC
+fi
+
+sudo bmaptool copy --bmap $BMAPFILE $SRC $DST 
